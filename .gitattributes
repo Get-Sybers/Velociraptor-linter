@@ -1,0 +1,7 @@
+* text=auto eol=lf
+*.yaml text
+*.yml text
+*.md text
+*.py text
+*.sh text eol=lf
+Makefile text eol=lf

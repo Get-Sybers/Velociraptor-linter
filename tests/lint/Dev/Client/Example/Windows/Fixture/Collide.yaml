@@ -1,0 +1,9 @@
+name: Windows.System.TaskScheduler
+author: "Example - Fixture"
+description: Collides with a built-in.
+type: CLIENT
+reference:
+  - https://example.invalid/
+precondition: SELECT OS FROM info() WHERE OS = "windows"
+sources:
+  - query: SELECT Pid FROM pslist()

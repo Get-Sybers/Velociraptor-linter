@@ -1,0 +1,77 @@
+# The smoke host for macOS artefacts: Velociraptor's dead-disk remapping
+# (--remap) impersonating macOS, with / mounted from __ROOT__, a directory
+# scripts/smoke.sh fills from tests/smoke/files.txt. Plugins that read the
+# live machine are disabled: they return no rows.
+remappings:
+  - type: permissions
+    permissions:
+      - COLLECT_CLIENT
+      - FILESYSTEM_READ
+      - FILESYSTEM_WRITE
+      - MACHINE_STATE
+      - READ_RESULTS
+      - EXECVE
+  - type: impersonation
+    os: darwin
+    hostname: smoke-darwin
+    env:
+      - key: HOME
+        value: /Users/smoke
+      - key: USER
+        value: smoke
+      - key: PATH
+        value: /usr/bin:/bin:/usr/sbin:/sbin
+    disabled_plugins:
+      - execve
+      - http_client
+      - users
+      - handles
+      - pslist
+      - interfaces
+      - modules
+      - netstat
+      - partitions
+      - proc_dump
+      - proc_yara
+      - connections
+  - type: mount
+    from:
+      accessor: file
+      prefix: __ROOT__/rootfs
+    "on":
+      accessor: file
+      prefix: /
+      path_type: linux
+  - type: mount
+    from:
+      accessor: file
+      prefix: __ROOT__/rootfs
+    "on":
+      accessor: auto
+      prefix: /
+      path_type: linux
+  - type: shadow
+    from:
+      accessor: data
+    "on":
+      accessor: data
+  - type: shadow
+    from:
+      accessor: gzip
+    "on":
+      accessor: gzip
+  - type: shadow
+    from:
+      accessor: zip
+    "on":
+      accessor: zip
+  - type: shadow
+    from:
+      accessor: sparse
+    "on":
+      accessor: sparse
+  - type: shadow
+    from:
+      accessor: scope
+    "on":
+      accessor: scope

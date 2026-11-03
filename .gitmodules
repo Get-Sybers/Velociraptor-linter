@@ -1,0 +1,15 @@
+[submodule "upstream/velociraptor"]
+	path = upstream/velociraptor
+	url = https://github.com/Velocidex/velociraptor.git
+	branch = master
+	shallow = true
+[submodule "upstream/velociraptor-docs"]
+	path = upstream/velociraptor-docs
+	url = https://github.com/Velocidex/velociraptor-docs.git
+	branch = master
+	shallow = true
+[submodule "upstream/DetectRaptor"]
+	path = upstream/DetectRaptor
+	url = https://github.com/mgreen27/DetectRaptor.git
+	branch = master
+	shallow = true

@@ -1,0 +1,81 @@
+name: Update pins
+
+# Weekly raise of every pin this repository owns: the three upstream
+# submodules move to the tip of their branch and the Velociraptor binary
+# to its newest release (scripts/upgrade.sh). The change is pushed to a
+# dedicated branch for manual pull-request creation. Python and GitHub
+# Actions pins are raised by Dependabot instead.
+#
+on:
+  schedule:
+    - cron: "17 6 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  upgrade:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout with submodules
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          submodules: recursive
+          fetch-depth: 1
+
+      - name: Set up Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.13"
+          cache: pip
+          cache-dependency-path: .github/workflows/requirements/python.txt
+
+      - name: Install Python tooling
+        run: make deps
+
+      - name: Raise pins and run the gate
+        run: make upgrade
+
+      - name: Commit and push update branch
+        id: push_updates
+        run: |
+          branch="chore-update-pins"
+          base="${{ github.event.repository.default_branch }}"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git checkout -B "${branch}"
+          submodule_status="$(git submodule status --recursive)"
+          printf '%s\n' "${submodule_status}"
+          # A leading '+' indicates submodule pointers were refreshed by `make upgrade`
+          # and are expected before we commit them, so we only fail for broken states.
+          if printf '%s\n' "${submodule_status}" | grep -Eq '^(\-|U)'; then
+            echo "Submodule status is not clean."
+            echo "Uninitialized (-) or conflicted (U) submodules are not allowed."
+            echo "A leading '+' indicates the pointer was updated by make upgrade and is expected before commit."
+            exit 1
+          fi
+          changed="$( { git diff HEAD --name-only; git ls-files --others --exclude-standard; } | sort -u)"
+          unexpected="$(printf '%s\n' "${changed}" \
+            | grep -Ev '^$|^(\.github/workflows/requirements/velociraptor\.txt|\.gitmodules|upstream($|/))' || true)"
+          if [ -n "${unexpected}" ]; then
+            echo "Unexpected changes outside managed pin paths:"
+            echo "${unexpected}"
+            git status --short
+            exit 1
+          fi
+          git add .github/workflows/requirements/velociraptor.txt .gitmodules upstream
+          if git diff --cached --quiet; then
+            echo "No pin updates found."
+            echo "pr_url=" >> "${GITHUB_OUTPUT}"
+            exit 0
+          fi
+          git commit -m "chore(deps): raise submodule and Velociraptor pins"
+          git push --force origin "${branch}"
+          echo "pr_url=https://github.com/${{ github.repository }}/compare/${base}...${branch}?expand=1" >> "${GITHUB_OUTPUT}"
+
+      - name: Show manual pull request URL
+        if: steps.push_updates.outputs.pr_url != ''
+        run: echo "Open ${PR_URL} to create the pull request."
+        env:
+          PR_URL: ${{ steps.push_updates.outputs.pr_url }}

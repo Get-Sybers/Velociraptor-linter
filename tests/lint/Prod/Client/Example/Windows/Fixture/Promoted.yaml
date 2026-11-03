@@ -1,0 +1,10 @@
+name: Example.Windows.Fixture.Promoted
+author: "Example - Fixture"
+description: Promoted while depending on a Dev-only artefact.
+type: CLIENT
+reference:
+  - https://example.invalid/
+precondition: SELECT OS FROM info() WHERE OS = "windows"
+sources:
+  - query: |
+      SELECT * FROM Artifact.Example.Windows.Fixture.Linked()

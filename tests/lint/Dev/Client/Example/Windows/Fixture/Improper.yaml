@@ -1,0 +1,31 @@
+name: Example.Windows.Fixture.Improper
+author: "Example - Fixture"
+description: VQL that parses and verifies but cannot run.
+type: CLIENT
+reference:
+  - https://example.invalid/
+precondition: SELECT OS FROM info() WHERE OS = "windows"
+sources:
+  - name: Processes
+    query: |
+      LET Cmd <= execve(argv=["whoami"])
+      SELECT "Processes" AS _Source, Cmd.Stdout AS Output FROM scope()
+  - name: Missing
+    query: SELECT "Missing" AS _Source, * FROM amcache()
+  - name: Union
+    query: |
+      LET Rows = SELECT * FROM glob(globs="C:/Users/*")
+      SELECT "Union" AS _Source, * FROM Processes
+  - name: Defined
+    query: |
+      LET Local(X) = SELECT X FROM scope()
+      SELECT "Defined" AS _Source, * FROM Local(X=1)
+  - name: Gated
+    query: SELECT "Gated" AS _Source, * FROM Artifact.Generic.Client.Info()
+  - name: GatedOk
+    query: SELECT "GatedOk" AS _Source, * FROM Artifact.Generic.Client.Info(preconditions=TRUE)
+  - name: Yara
+    query: |
+      LET Pattern <= "cmd\\.exe\\s*/c"
+      LET Rule <= format(format="rule X { strings: $s = /%v/ condition: $s }", args=[Pattern])
+      SELECT "Yara" AS _Source, * FROM yara(files="C:/x", rules=Rule)

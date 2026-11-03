@@ -1,0 +1,96 @@
+name: CI
+
+# The pull-request gate: yamllint, then everything the pinned Velociraptor
+# release checks (the VQL linter, the verifier, the smoke). Every job checks
+# out the upstream submodules recursively (the dependency universe) and runs
+# the same `make` targets a contributor runs locally. `all_green` is the one
+# status check branch protection requires.
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint:
+    name: yamllint
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 1
+
+      - name: Set up Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.13"
+          cache: pip
+          cache-dependency-path: .github/workflows/requirements/python.txt
+
+      - name: Install Python tooling
+        run: make deps
+
+      - name: YAML style
+        run: make yamllint
+
+  verify:
+    name: velociraptor lint, verify, smoke
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout with submodules
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          submodules: recursive
+          fetch-depth: 1
+
+      - name: Cache the pinned Velociraptor binary
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: .cache/velociraptor
+          key: velociraptor-${{ runner.os }}-${{ hashFiles('.github/workflows/requirements/velociraptor.txt') }}
+
+      - name: Set up Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.13"
+          cache: pip
+          cache-dependency-path: .github/workflows/requirements/python.txt
+
+      - name: Install Python tooling
+        run: make deps
+
+      - name: Artefact standard (lint/Artefacts.yaml)
+        run: make vql-lint
+
+      - name: Linter regression test
+        run: make lint-test
+
+      - name: Native loadability and static analysis
+        run: make verify
+
+      - name: Smoke, every artefact on every host
+        run: make smoke
+
+  all_green:
+    name: all_green
+    if: ${{ always() }}
+    needs: [lint, verify]
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Fail when any required job failed or was cancelled
+        run: |
+          set -euo pipefail
+          results='${{ join(needs.*.result, ' ') }}'
+          echo "job results: ${results}"
+          case "${results}" in
+            *failure* | *cancelled*) exit 1 ;;
+          esac

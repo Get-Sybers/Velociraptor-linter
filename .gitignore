@@ -1,0 +1,13 @@
+# Tool cache populated by scripts/velociraptor.sh (pinned binary) and make.
+.cache/
+# Python
+__pycache__/
+*.pyc
+.venv/
+# Velociraptor runtime state from local testing
+*.db
+*.sqlite
+# Editors / OS
+.DS_Store
+.idea/
+.vscode/

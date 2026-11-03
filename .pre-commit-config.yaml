@@ -1,0 +1,39 @@
+# Local gate (`prek install` or `pre-commit install`). CI runs the same
+# tools through `make conform`; the rev pins here are the single source of
+# linter versions and Dependabot/`prek update` raise them.
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0
+    hooks:
+      - id: check-added-large-files
+      - id: check-merge-conflict
+      - id: check-yaml
+        exclude: ^(upstream/|tests/lint/)
+      - id: end-of-file-fixer
+        exclude: ^(upstream/|tests/lint/)
+      - id: trailing-whitespace
+        exclude: ^(upstream/|tests/lint/)
+      - id: detect-private-key
+  - repo: https://github.com/adrienverge/yamllint
+    rev: v1.38.0
+    hooks:
+      - id: yamllint
+        args: [--strict]
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: v8.30.1
+    hooks:
+      - id: gitleaks
+  - repo: local
+    hooks:
+      - id: vql-lint
+        name: vql-lint (lint/Artefacts.yaml)
+        entry: scripts/lint.sh
+        language: system
+        files: ^(Dev|Prod)/.*\.ya?ml$
+        pass_filenames: true
+      - id: velociraptor-verify
+        name: velociraptor artifacts verify
+        entry: scripts/velociraptor.sh artifacts verify --nocolor
+        language: system
+        files: ^(Dev|Prod)/.*\.ya?ml$
+        pass_filenames: true
