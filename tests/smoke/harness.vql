@@ -1,0 +1,18 @@
+-- The smoke harness: every client artefact whose name matches Filter is
+-- collected once, by Velociraptor's own collect(), inside the host the
+-- --remap configuration describes. Markers bracket each artefact's log
+-- lines so scripts/smoke.sh can attribute what Velociraptor logs.
+LET Names = SELECT name
+  FROM artifact_definitions()
+  WHERE name =~ Filter AND type = "client"
+  ORDER BY name
+
+SELECT Artefact, Rows
+FROM foreach(row=Names, query={
+  SELECT name AS Artefact, count() AS Rows
+  FROM chain(
+    begin={ SELECT * FROM scope() WHERE log(message="smoke: begin %v", args=name, dedup=-1) AND FALSE },
+    run={ SELECT * FROM collect(artifacts=[name], timeout=120) },
+    end={ SELECT * FROM scope() WHERE log(message="smoke: end %v", args=name, dedup=-1) AND FALSE })
+  GROUP BY Artefact
+})

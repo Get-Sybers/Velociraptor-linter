@@ -1,0 +1,193 @@
+# The smoke host for Windows artefacts: Velociraptor's dead-disk remapping
+# (--remap) impersonating Windows, with the C: drive and the registry
+# mounted from __ROOT__, a directory scripts/smoke.sh fills from
+# tests/smoke/files.txt and the sample hives __TESTDATA__ ships.
+# Plugins that read the live machine are disabled: they return no rows.
+remappings:
+  - type: permissions
+    permissions:
+      - COLLECT_CLIENT
+      - FILESYSTEM_READ
+      - FILESYSTEM_WRITE
+      - MACHINE_STATE
+      - READ_RESULTS
+      - EXECVE
+  - type: impersonation
+    os: windows
+    hostname: smoke-windows
+    env:
+      - key: SystemRoot
+        value: C:\Windows
+      - key: WinDir
+        value: C:\Windows
+      - key: SystemDrive
+        value: "C:"
+      - key: ProgramData
+        value: C:\ProgramData
+      - key: ProgramFiles
+        value: C:\Program Files
+      - key: ProgramFiles(x86)
+        value: C:\Program Files (x86)
+      - key: USERPROFILE
+        value: C:\Users\smoke
+      - key: APPDATA
+        value: C:\Users\smoke\AppData\Roaming
+      - key: LOCALAPPDATA
+        value: C:\Users\smoke\AppData\Local
+      - key: TEMP
+        value: C:\Windows\Temp
+      - key: TMP
+        value: C:\Windows\Temp
+    disabled_functions:
+      - amsi
+      - lookupSID
+      - token
+    disabled_plugins:
+      - execve
+      - http_client
+      - users
+      - certificates
+      - handles
+      - pslist
+      - interfaces
+      - modules
+      - netstat
+      - partitions
+      - proc_dump
+      - proc_yara
+      - vad
+      - winobj
+      - wmi
+  # The C: drive, through every accessor an artefact may name; file_nocase
+  # gives the case-insensitive paths Windows has.
+  - type: mount
+    from:
+      accessor: file_nocase
+      prefix: __ROOT__/C
+    "on":
+      accessor: file
+      prefix: "C:"
+      path_type: windows
+  - type: mount
+    from:
+      accessor: file_nocase
+      prefix: __ROOT__/C
+    "on":
+      accessor: auto
+      prefix: "C:"
+      path_type: windows
+  - type: mount
+    from:
+      accessor: file_nocase
+      prefix: __ROOT__/C
+    "on":
+      accessor: ntfs
+      prefix: "C:"
+      path_type: ntfs
+  - type: mount
+    from:
+      accessor: file_nocase
+      prefix: __ROOT__/C
+    "on":
+      accessor: lazy_ntfs
+      prefix: "C:"
+      path_type: ntfs
+  # The registry: empty hives, then the sample hives mounted where Windows
+  # would have them.
+  - type: mount
+    from:
+      accessor: file
+      prefix: __ROOT__/registry
+    "on":
+      accessor: registry
+      prefix: HKEY_LOCAL_MACHINE
+      path_type: registry
+  - type: mount
+    from:
+      accessor: file
+      prefix: __ROOT__/registry
+    "on":
+      accessor: registry
+      prefix: HKEY_USERS
+      path_type: registry
+  - type: mount
+    description: SOFTWARE hive (the TaskCache sample)
+    from:
+      accessor: raw_reg
+      path_type: registry
+      prefix: '{"Path":"/","DelegateAccessor":"file","DelegatePath":"__TESTDATA__/TaskCache.hve"}'
+    "on":
+      accessor: registry
+      prefix: HKEY_LOCAL_MACHINE\SOFTWARE
+      path_type: registry
+  - type: mount
+    description: SAM hive
+    from:
+      accessor: raw_reg
+      path_type: registry
+      prefix: '{"Path":"/","DelegateAccessor":"file","DelegatePath":"__TESTDATA__/SAM"}'
+    "on":
+      accessor: registry
+      prefix: HKEY_LOCAL_MACHINE\SAM
+      path_type: registry
+  - type: mount
+    description: NTUSER.DAT of the smoke user
+    from:
+      accessor: raw_reg
+      path_type: registry
+      prefix: '{"Path":"/","DelegateAccessor":"file","DelegatePath":"__TESTDATA__/ntuser.dat"}'
+    "on":
+      accessor: registry
+      prefix: HKEY_USERS\S-1-5-21-1-1-1-1001
+      path_type: registry
+  - type: mount
+    description: NTUSER.DAT as the current user
+    from:
+      accessor: raw_reg
+      path_type: registry
+      prefix: '{"Path":"/","DelegateAccessor":"file","DelegatePath":"__TESTDATA__/ntuser.dat"}'
+    "on":
+      accessor: registry
+      prefix: HKEY_CURRENT_USER
+      path_type: registry
+  - type: mount
+    description: UsrClass.dat of the smoke user
+    from:
+      accessor: raw_reg
+      path_type: registry
+      prefix: '{"Path":"/","DelegateAccessor":"file","DelegatePath":"__TESTDATA__/UsrClass.dat"}'
+    "on":
+      accessor: registry
+      prefix: HKEY_USERS\S-1-5-21-1-1-1-1001_Classes
+      path_type: registry
+  # Accessors that read what the query already holds stay as they are.
+  - type: shadow
+    from:
+      accessor: data
+    "on":
+      accessor: data
+  - type: shadow
+    from:
+      accessor: gzip
+    "on":
+      accessor: gzip
+  - type: shadow
+    from:
+      accessor: zip
+    "on":
+      accessor: zip
+  - type: shadow
+    from:
+      accessor: sparse
+    "on":
+      accessor: sparse
+  - type: shadow
+    from:
+      accessor: scope
+    "on":
+      accessor: scope
+  - type: shadow
+    from:
+      accessor: raw_reg
+    "on":
+      accessor: raw_reg

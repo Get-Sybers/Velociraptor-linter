@@ -1,0 +1,16 @@
+name: Example.Bundle.Fixture
+author: "Example - Fixture"
+description: A bundle whose sources drift.
+type: CLIENT
+reference:
+  - https://example.invalid/
+precondition: SELECT OS FROM info() WHERE OS = "windows"
+sources:
+  - name: One
+    query: |
+      SELECT "One" AS _Source, Pid, Name
+      FROM pslist()
+  - name: Two
+    query: |
+      SELECT "Two" AS _Source, Pid, Exe
+      FROM pslist()

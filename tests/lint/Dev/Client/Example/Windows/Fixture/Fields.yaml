@@ -1,0 +1,37 @@
+name: Example.Windows.Fixture.Fields
+description: |
+  This artefact has a bad lead sentence.
+type: client
+# a yaml comment
+reports:
+  - type: CLIENT
+parameters:
+  - name: badName
+    description: lower camel name, no default
+  - name: ValueRegex
+    type: string
+    description: Pattern for the value.
+    default: .
+  - name: PathGlob
+    description: Glob of the path; the full pattern, wildcards included, is used verbatim.
+    default: C:/x/**
+  - name: Count
+    type: string
+    description: Not an int.
+    default: "1"
+  - name: LongHintRegex
+    type: regex
+    description: Regex matched against the name; the full expression is used verbatim (add your own anchors and flags). No quotes; add (?i) for case-insensitive and anchors as needed, e.g. `x`. Padding padding padding padding padding padding padding padding padding padding padding padding padding padding padding padding padding padding padding padding padding padding padding padding padding padding padding padding padding padding padding padding padding padding padding padding padding padding padding padding padding padding padding padding padding padding padding padding padding padding padding padding.
+    default: .
+  - name: Unused
+    description: Never used in VQL.
+    default: x
+  - name: NoHint
+    default: x
+sources:
+  - query: |
+      LET lower_name = SELECT * FROM info()
+      -- a vql comment
+      SELECT OSPath AS os_path, log(message="hi"), log(level="WARN", message="Error: bad"),
+             "(?i)" + ValueRegex AS Decorated, PathGlob, Count, LongHintRegex
+      FROM glob(globs=PathGlob)

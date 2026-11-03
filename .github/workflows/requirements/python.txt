@@ -1,0 +1,5 @@
+# yamllint for `make yamllint` (PyYAML is its dependency). Exact pins only:
+# Dependabot (pip) raises them weekly. actions/setup-python keys its pip
+# cache on this file.
+PyYAML==6.0.3
+yamllint==1.38.0

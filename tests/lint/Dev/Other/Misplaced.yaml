@@ -1,0 +1,5 @@
+name: Example.Windows.Fixture.Misplaced
+description: wrong directory
+type: CLIENT
+sources:
+  - query: SELECT 1 FROM scope()

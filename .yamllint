@@ -1,0 +1,28 @@
+# YAML style gate for artefact definitions and workflow files.
+# Semantics (field order, naming, comments inside VQL) are the job of
+# lint/Artefacts.yaml (via scripts/lint.sh); this file only holds the YAML surface rules.
+extends: default
+
+ignore: |
+  upstream/
+  .cache/
+  tests/lint/
+
+rules:
+  document-start: disable
+  line-length: disable
+  truthy:
+    check-keys: false
+  indentation:
+    spaces: 2
+    indent-sequences: consistent
+  comments:
+    min-spaces-from-content: 1
+  comments-indentation: disable
+  trailing-spaces: enable
+  new-line-at-end-of-file: enable
+  empty-lines:
+    max: 2
+  key-duplicates: enable
+  octal-values:
+    forbid-implicit-octal: true

@@ -1,0 +1,9 @@
+name: Example.Windows.Fixture.Linked
+author: "Example - Fixture"
+description: Has a companion but no link to it.
+type: CLIENT
+reference:
+  - https://example.invalid/
+precondition: SELECT OS FROM info() WHERE OS = "windows"
+sources:
+  - query: SELECT Pid FROM pslist()

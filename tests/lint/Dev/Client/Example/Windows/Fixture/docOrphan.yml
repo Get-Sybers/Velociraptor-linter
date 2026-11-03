@@ -1,0 +1,8 @@
+name: Example.Windows.Fixture.Orphan.Doc
+author: "Example - Fixture"
+description: Companion without an artefact and without a template.
+type: NOTEBOOK
+sources:
+  - notebook:
+      - type: markdown
+        name: Documentation

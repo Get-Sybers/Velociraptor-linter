@@ -1,0 +1,9 @@
+name: nope.windows.Fixture.Other.Too.Many.Segments.Here
+author: "Example - Fixture"
+description: Every naming rule at once.
+type: CLIENT
+reference:
+  - https://example.invalid/
+precondition: SELECT OS FROM info() WHERE OS = "windows"
+sources:
+  - query: SELECT Pid FROM pslist()

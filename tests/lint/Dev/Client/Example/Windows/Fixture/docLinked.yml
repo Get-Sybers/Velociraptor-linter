@@ -1,0 +1,12 @@
+name: Example.Windows.Fixture.Linked.Doc
+author: "Example - Fixture"
+description: Companion with a parameter and a non-markdown first cell.
+type: CLIENT
+parameters:
+  - name: Nope
+    description: Companions take none.
+    default: x
+sources:
+  - notebook:
+      - type: vql
+        template: SELECT 1 FROM scope()

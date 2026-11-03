@@ -1,0 +1,5 @@
+name: Example.Windows.Fixture.NotDoc
+description: wrong extension
+type: CLIENT
+sources:
+  - query: SELECT 1 FROM scope()

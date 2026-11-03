@@ -1,0 +1,31 @@
+# What each smoke host holds: Velociraptor's own sample files
+# (upstream/velociraptor/artifacts/testdata/files) placed where the
+# operating system would keep them. Columns, tab separated because paths
+# may hold spaces: host, path under the host root (windows: under C/,
+# linux and darwin: under rootfs/), sample file. The hives are mounted
+# straight into the registry by tests/smoke/windows.yaml.
+windows	C/Windows/System32/winevt/Logs/Security.evtx	RDPAuth_Security.evtx
+windows	C/Windows/System32/winevt/Logs/System.evtx	RDPAuth_System.evtx
+windows	C/Windows/System32/winevt/Logs/Microsoft-Windows-TerminalServices-LocalSessionManager%4Operational.evtx	RDPAuth_LocalSessionManager.evtx
+windows	C/Windows/System32/winevt/Logs/Microsoft-Windows-TerminalServices-RemoteConnectionManager%4Operational.evtx	RDPAuth_RemoteConnectionManager.evtx
+windows	C/Windows/System32/winevt/Logs/Microsoft-Windows-TaskScheduler%4Operational.evtx	TaskScheduler.evtx
+windows	C/Windows/System32/winevt/Logs/Microsoft-Windows-PowerShell%4Operational.evtx	EID4104_PowershellScriptblock.evtx
+windows	C/Windows/System32/winevt/Logs/Microsoft-Windows-Sysmon%4Operational.evtx	evtx/Microsoft-Windows-Sysmon%4Operational.evtx
+windows	C/Windows/Prefetch/VELOCIRAPTOR.EXE-DB95245D.pf	VELOCIRAPTOR.EXE-DB95245D.pf
+windows	C/Windows/AppCompat/Programs/Amcache.hve	Amcache.hve
+windows	C/Windows/System32/config/SAM	SAM
+windows	C/Windows/System32/drivers/etc/hosts	hosts
+windows	C/Users/smoke/NTUSER.DAT	ntuser.dat
+windows	C/Users/smoke/AppData/Local/Microsoft/Windows/UsrClass.dat	UsrClass.dat
+windows	C/Users/smoke/AppData/Local/Google/Chrome/User Data/Default/History	ChromeHistory.sqlite
+windows	C/Users/smoke/AppData/Roaming/Microsoft/Windows/Recent/AutomaticDestinations/5f7b5f1e01b83767.automaticDestinations-ms	5f7b5f1e01b83767.automaticDestinations-ms
+windows	C/Users/smoke/Downloads/password.txt.lnk	password.txt.lnk
+linux	rootfs/etc/passwd	linux/passwd
+linux	rootfs/etc/group	linux/group
+linux	rootfs/etc/hosts	hosts
+linux	rootfs/home/smoke/.ssh/authorized_keys	linux/authorized_keys
+linux	rootfs/var/lib/dpkg/status	debian/status
+linux	rootfs/etc/apt/sources.list	debian/sources.list/sources.list
+linux	rootfs/etc/apt/sources.list.d/osquery.list	debian/sources.list/osquery.list
+darwin	rootfs/etc/hosts	hosts
+darwin	rootfs/Users/smoke/Library/Preferences/com.apple.dock.plist	com.apple.dock.plist

@@ -1,0 +1,24 @@
+name: Example.Windows.Fixture.Sources
+author: "Example - Fixture"
+description: Sources with every structural problem.
+type: CLIENT
+reference:
+  - https://example.invalid/
+precondition: SELECT OS FROM info() WHERE OS = "windows"
+sources:
+  - name: A
+    query: SELECT Pid, "A" AS _Source FROM pslist()
+  - name: A
+    queries:
+      - SELECT 1 FROM scope()
+  - name: B
+    query: |
+      SELECT Upload, Name, "B" AS _Source
+      FROM Artifact.Nope.Missing.Thing()
+  - name: C
+    query: |
+      SELECT * FROM Artifact.Windows.System.TaskScheduler(nope=1)
+  - name: D
+    query: |
+      SELECT Name FROM Artifact.Windows.System.TaskScheduler()
+  - name: E
