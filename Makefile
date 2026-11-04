@@ -47,16 +47,20 @@ lint-bin: $(LINT)
 $(UNIVERSE): tools $(DEFS) scripts/universe.vql
 	$(VR) --definitions $(DEFS) query --format jsonl "$$(cat scripts/universe.vql)" > $(UNIVERSE)
 
+# Ensure the upstream submodule carrying the VQL reference is present.
+$(REFERENCE):
+	$(MAKE) submodules
+
 # The standard as a Go linter, run over the artefact trees (Dev, Prod).
-lint: $(LINT) $(UNIVERSE)
+lint: $(LINT) $(UNIVERSE) $(REFERENCE)
 	$(LINT) --universe $(UNIVERSE) --reference $(REFERENCE) $(ARTEFACTS)
 
 # The linter's own regression test: the fixtures under tests/lint produce
 # exactly tests/lint/expected.txt.
-lint-test: $(LINT) $(UNIVERSE)
+lint-test: $(LINT) $(UNIVERSE) $(REFERENCE)
 	$(LINT) --root tests/lint --universe $(UNIVERSE) --reference $(REFERENCE) --expect tests/lint/expected.txt Dev Prod
 
-lint-test-update: $(LINT) $(UNIVERSE)
+lint-test-update: $(LINT) $(UNIVERSE) $(REFERENCE)
 	$(LINT) --root tests/lint --universe $(UNIVERSE) --reference $(REFERENCE) --update-expected tests/lint/expected.txt Dev Prod
 
 verify: tools $(DEFS)

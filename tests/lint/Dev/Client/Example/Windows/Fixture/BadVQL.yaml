@@ -1,0 +1,9 @@
+name: Example.Windows.Fixture.BadVQL
+author: Example
+description: A fixture whose source query is not valid VQL, to exercise VS085.
+type: CLIENT
+reference:
+  - https://example.com/badvql
+sources:
+  - precondition: 'SELECT OS FROM info() WHERE OS = "windows"'
+    query: 'SELECT )('

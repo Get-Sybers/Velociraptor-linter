@@ -199,6 +199,9 @@ func loadUniverse(path string) map[string]rules.UDef {
 			u[al] = d
 		}
 	}
+	if err := sc.Err(); err != nil {
+		fatal(fmt.Errorf("reading universe index %q: %w", path, err))
+	}
 	return u
 }
 

@@ -419,5 +419,6 @@ scripts/velociraptor.sh --definitions Dev/Client artifacts collect <Name> --form
 | VS082 | error | no source reads a sibling source as a variable (`FROM OtherSource`) |
 | VS083 | warning | a call to an artefact whose sources carry different preconditions passes `preconditions=TRUE` or `source=` |
 | VS084 | error | a value placed between the `/` delimiters of a YARA regex (`/%v/`, `$s = /" + X`) has `/` escaped in the same artefact |
+| VS085 | error | every VQL block parses (surfaces a syntax error the AST rules would otherwise skip) |
 
 Warnings are errors under `--strict` and always for files under `Prod/`.
