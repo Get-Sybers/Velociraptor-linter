@@ -1,6 +1,5 @@
-// velociraptor-lint runs the artefact standard over a tree of artefacts.
-// It is the Go replacement for lint/Artefacts.yaml + scripts/lint.sh and keeps
-// the same CLI and output so the Makefile/CI integration is drop-in.
+// velociraptor-lint runs the artefact standard over a tree of artefacts,
+// reporting each finding as "path:line: RULE sev: message".
 //
 //	velociraptor-lint [--strict] [--root DIR] [--universe F] [--reference F] [path ...]
 //

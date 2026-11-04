@@ -13,7 +13,7 @@ import (
 )
 
 // Finding is one linter result. Its String form is the line the CLI prints and
-// sorts, identical to the legacy lint.sh format: "path:line: RULE sev: message".
+// sorts on: "path:line: RULE sev: message".
 type Finding struct {
 	Path     string
 	Line     int
@@ -70,8 +70,8 @@ type Source struct {
 
 func (s *Source) Has(k string) bool { return s.keys[k] }
 
-// Block is one VQL-bearing region of the artefact, labelled as the legacy
-// linter labels it ("export", "precondition", "sources[0].query", ...).
+// Block is one VQL-bearing region of the artefact, labelled by its field
+// path ("export", "precondition", "sources[0].query", ...).
 type Block struct {
 	Field string
 	VQL   string
@@ -249,7 +249,7 @@ func parseSource(n *yaml.Node) Source {
 	return s
 }
 
-// Blocks returns every VQL-bearing region, labelled as the legacy linter does.
+// Blocks returns every VQL-bearing region, each labelled by its field path.
 func (a *Artefact) Blocks() []Block {
 	var bs []Block
 	if a.Precondition != "" {
