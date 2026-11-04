@@ -1,9 +1,9 @@
 # VQL Artefact Standards
 
 These rules govern every artefact in `Dev/` and `Prod/`. `make conform` enforces them with
-`yamllint` and the pinned Velociraptor release: `lint/Artefacts.yaml`, this standard written as
-VQL (rule table in the appendix), `velociraptor artifacts verify` and a smoke run. A rule
-the gate cannot check yet is a gap in the lint artefact, not an exemption.
+`yamllint` and the pinned Velociraptor release: a Go linter (`linter/`) implementing this
+standard (rule table in the appendix), `velociraptor artifacts verify` and a smoke run. A rule
+the gate cannot check yet is a gap in the linter, not an exemption.
 
 One sentence governs the rest: **an artefact collects and a bundle decides; every input arrives
 through a typed parameter that the VQL uses verbatim; every artefact is loadable by Velociraptor
@@ -332,12 +332,12 @@ two trees are loaded into different servers.
 the one required status check; the [README](../README.md) covers the targets, CI and pins.
 
 - **`make yamllint`**: `.yamllint`, strict.
-- **`make vql-lint`**: `lint/Artefacts.yaml`, the artefact `Linter.Artefacts`, this
-  document as VQL (appendix), run by the pinned release over the YAML on disk with
-  `artifact_definitions()` as the dependency universe. Warnings are errors under `--strict`
-  and always under `Prod/`. `make lint-test` runs it over the fixtures under `tests/lint/`,
-  one broken artefact per rule group, which must produce exactly `tests/lint/expected.txt`;
-  a rule change updates both.
+- **`make lint`**: the Go linter (`linter/`), this document's rules (appendix), run over the
+  YAML on disk. It reuses the pinned release's VQL parser for the AST rules and resolves calls
+  and collisions against a dumped index of the built-ins, Exchange and DetectRaptor. Warnings
+  are errors under `--strict` and always under `Prod/`. `make lint-test` runs it over the
+  fixtures under `tests/lint/`, one broken artefact per rule group, which must produce exactly
+  `tests/lint/expected.txt`; a rule change updates the rule, its fixture and expected.txt.
 - **`make verify`**: `velociraptor artifacts verify` from the pinned release, with the Exchange
   and DetectRaptor definitions loaded: the same code path as a GUI upload. Strict YAML, VQL
   parsing of every `query`, `precondition` and `export`, unknown plugins and functions, wrong or
@@ -357,8 +357,8 @@ the one required status check; the [README](../README.md) covers the targets, CI
   here. Server and event artefacts are not run.
 
 Suppression is the verifier's own directive, per subject, in the artefact. There is no
-repo-wide skip list; a wrong rule is changed in `lint/Artefacts.yaml` through a reviewed pull
-request.
+repo-wide skip list; a wrong rule is changed in the linter (`linter/rules/`) through a reviewed
+pull request.
 
 To try an artefact against this machine before writing its test:
 

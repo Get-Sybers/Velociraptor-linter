@@ -1,14 +1,19 @@
 # Velociraptor artefact conformance. `make conform` is the gate CI runs and the
 # one command a contributor runs locally; every target below is a piece of it.
-# Everything but yamllint runs through the pinned Velociraptor release.
+# The linter is a Go program under linter/; yamllint, the verifier and the smoke
+# run through the pinned Velociraptor release.
 PY ?= python3
 VR := scripts/velociraptor.sh
 ARTEFACTS := Dev Prod
 REQ := .github/workflows/requirements/python.txt
+DEFS := .cache/definitions
+LINT := .cache/velociraptor-lint
+UNIVERSE := .cache/universe.jsonl
+REFERENCE := upstream/velociraptor/docs/references/vql.yaml
 
-.PHONY: conform deps tools submodules yamllint vql-lint lint-test lint-test-update verify smoke upgrade clean
+.PHONY: conform deps tools submodules yamllint lint lint-bin lint-test lint-test-update verify smoke upgrade clean
 
-conform: yamllint vql-lint lint-test verify smoke
+conform: yamllint lint lint-test verify smoke
 
 deps:
 	$(PY) -m pip install --quiet --ignore-installed --requirement $(REQ)
@@ -23,37 +28,43 @@ submodules:
 yamllint:
 	$(PY) -m yamllint --strict .
 
-# Exchange, DetectRaptor and the lint artefact are loaded alongside the
-# built-ins: the first two so permissions declared by called artefacts
-# propagate into the analysis and calls resolve, the last so the linter runs.
-DEFS := .cache/definitions
-$(DEFS): $(wildcard upstream/velociraptor-docs/content/exchange/artifacts/*.yaml) $(wildcard upstream/DetectRaptor/vql/*.yaml) $(wildcard lint/*.yaml)
-	rm -rf $(DEFS) && mkdir -p $(DEFS)/exchange $(DEFS)/detectraptor $(DEFS)/lint
+# Exchange and DetectRaptor definitions: loaded by the verifier and the smoke so
+# called-artefact permissions propagate, and dumped into the linter's universe.
+$(DEFS): $(wildcard upstream/velociraptor-docs/content/exchange/artifacts/*.yaml) $(wildcard upstream/DetectRaptor/vql/*.yaml)
+	rm -rf $(DEFS) && mkdir -p $(DEFS)/exchange $(DEFS)/detectraptor
 	cp upstream/velociraptor-docs/content/exchange/artifacts/*.yaml $(DEFS)/exchange/
 	cp upstream/DetectRaptor/vql/*.yaml $(DEFS)/detectraptor/
-	cp lint/*.yaml $(DEFS)/lint/
 
-# The standard as VQL (lint/Artefacts.yaml), run by the pinned binary over the
-# artefact trees (Dev, Prod).
-vql-lint: tools $(DEFS)
-	scripts/lint.sh $(ARTEFACTS)
+# The Go linter binary.
+$(LINT): linter/go.mod linter/go.sum $(wildcard linter/cmd/velociraptor-lint/*.go) $(wildcard linter/model/*.go) $(wildcard linter/rules/*.go)
+	@mkdir -p .cache
+	cd linter && go build -o "$(CURDIR)/$(LINT)" ./cmd/velociraptor-lint
+
+lint-bin: $(LINT)
+
+# The definitions index the resolution rules (VS024/025/026/040/083) resolve
+# against, dumped from the pinned release with Exchange and DetectRaptor loaded.
+$(UNIVERSE): tools $(DEFS) scripts/universe.vql
+	$(VR) --definitions $(DEFS) query --format jsonl "$$(cat scripts/universe.vql)" > $(UNIVERSE)
+
+# The standard as a Go linter, run over the artefact trees (Dev, Prod).
+lint: $(LINT) $(UNIVERSE)
+	$(LINT) --universe $(UNIVERSE) --reference $(REFERENCE) $(ARTEFACTS)
 
 # The linter's own regression test: the fixtures under tests/lint produce
 # exactly tests/lint/expected.txt.
-lint-test: tools $(DEFS)
-	scripts/lint.sh --root tests/lint --expect tests/lint/expected.txt Dev Prod
+lint-test: $(LINT) $(UNIVERSE)
+	$(LINT) --root tests/lint --universe $(UNIVERSE) --reference $(REFERENCE) --expect tests/lint/expected.txt Dev Prod
 
-lint-test-update: tools $(DEFS)
-	scripts/lint.sh --root tests/lint --update-expected tests/lint/expected.txt Dev Prod
+lint-test-update: $(LINT) $(UNIVERSE)
+	$(LINT) --root tests/lint --universe $(UNIVERSE) --reference $(REFERENCE) --update-expected tests/lint/expected.txt Dev Prod
 
 verify: tools $(DEFS)
 	$(VR) --definitions $(DEFS) artifacts verify --nocolor $(ARTEFACTS)
-	$(VR) --definitions $(DEFS) artifacts verify --builtin --nocolor lint
 
-# Smoke: every client artefact collected once on every smoke host (Windows,
-# Linux, macOS impersonated over Velociraptor's sample files) through the
-# pinned release; an error in the log fails it. With no artefacts in the
-# trees it is a no-op, and it covers whatever is added without naming any.
+# Smoke: every client artefact collected once on every smoke host through the
+# pinned release; an error in the log fails it. With no artefacts in the trees
+# it is a no-op, and it covers whatever is added without naming any.
 smoke: tools $(DEFS)
 	scripts/smoke.sh
 

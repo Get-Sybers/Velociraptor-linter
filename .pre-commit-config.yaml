@@ -25,15 +25,15 @@ repos:
       - id: gitleaks
   - repo: local
     hooks:
-      - id: vql-lint
-        name: vql-lint (lint/Artefacts.yaml)
-        entry: scripts/lint.sh
+      - id: lint
+        name: lint (Go linter)
+        entry: make lint
         language: system
         files: ^(Dev|Prod)/.*\.ya?ml$
-        pass_filenames: true
+        pass_filenames: false
       - id: velociraptor-verify
         name: velociraptor artifacts verify
-        entry: scripts/velociraptor.sh artifacts verify --nocolor
+        entry: make verify
         language: system
         files: ^(Dev|Prod)/.*\.ya?ml$
-        pass_filenames: true
+        pass_filenames: false

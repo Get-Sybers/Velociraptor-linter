@@ -1,9 +1,9 @@
 # Velociraptor Linter
 
 A style guide and conformance gate for [Velociraptor](https://docs.velociraptor.app)
-artefacts. The standard is itself a Velociraptor artefact (`lint/Artefacts.yaml`), the
-verifier is Velociraptor's own, and the whole gate — `make conform` — runs through one
-pinned Velociraptor release, so artefacts are checked with the exact binary that loads them.
+artefacts. The linter is a Go program (`linter/`) that reuses Velociraptor's own VQL parser,
+the verifier is Velociraptor's own, and the gate — `make conform` — runs the linter plus the
+pinned Velociraptor release, so artefacts are checked with the exact engine that loads them.
 
 Point it at a tree of artefacts and it enforces consistent names, layout, parameters,
 outputs, documentation and VQL, and flags VQL that parses and verifies but still cannot run
@@ -17,12 +17,13 @@ Prod/                artefacts proven in a collection; warnings are errors, neve
   Client/            CLIENT and CLIENT_EVENT
   Server/            SERVER and SERVER_EVENT
   Notebooks/         NOTEBOOK templates
-lint/
-  Artefacts.yaml     the standard as a VQL artefact (Linter.Artefacts); its rule table is the docs/01 appendix
+linter/              the linter: a Go program implementing the standard (rule table is the docs/01 appendix)
+  cmd/velociraptor-lint/   the CLI
+  model/, rules/           artefact model + one file per rule group
 scripts/
-  lint.sh            runs the lint artefact through the pinned release and prints the findings
+  universe.vql       dumps the definitions index the resolution rules resolve against
   smoke.sh           collects every artefact on three impersonated hosts (velociraptor --remap)
-  definitions.sh     assembles the definitions directory the linter and smoke load
+  definitions.sh     assembles the definitions directory the verifier and smoke load
   velociraptor.sh    downloads the pinned Velociraptor release into .cache/ and runs it
   upgrade.sh         raises the submodule and Velociraptor pins to their ceiling, then runs the gate
 tests/lint/          linter fixtures, one broken artefact per rule group, and expected.txt they must produce
@@ -52,7 +53,7 @@ Dev/Client/Example/Windows/Registry/docRunKeys.yml    Example.Windows.Registry.R
 git clone --recurse-submodules --shallow-submodules <repo-url>
 cd Velociraptor-linter
 make deps      # PyYAML and yamllint, pinned in .github/workflows/requirements/python.txt
-make conform   # yamllint, the VQL linter, the verifier, the smoke
+make conform   # yamllint, the Go linter, the verifier, the smoke (needs a Go toolchain)
 ```
 
 `make conform` is the gate CI runs on every pull request and the one command to run locally.
@@ -60,9 +61,9 @@ On first use it downloads the pinned Velociraptor release into `.cache/`.
 
 | Target | What it does |
 |---|---|
-| `make conform` | `yamllint`, `vql-lint`, `lint-test`, `verify`, `smoke`, in that order |
+| `make conform` | `yamllint`, `lint`, `lint-test`, `verify`, `smoke`, in that order |
 | `make yamllint` | YAML style, strict, from `.yamllint` |
-| `make vql-lint` | the standard as VQL (`lint/Artefacts.yaml`): naming, layout, must-haves, parameters, comment-free VQL, outputs, logging, dependency resolution, Dev/Prod rules |
+| `make lint` | the Go linter (`linter/`): naming, layout, must-haves, parameters, comment-free VQL, outputs, logging, dependency resolution, Dev/Prod rules |
 | `make lint-test` | the linter over `tests/lint/`, which must produce exactly `tests/lint/expected.txt` |
 | `make lint-test-update` | rewrite `tests/lint/expected.txt` after a deliberate rule change |
 | `make verify` | `velociraptor artifacts verify` from the pinned release, with the Exchange and DetectRaptor definitions loaded |

@@ -7,14 +7,16 @@ pins and the dependency universe behind them.
 
 ## One pinned release
 
-Everything but `yamllint` runs through one pinned Velociraptor release, so a contributor
-and CI check artefacts with the exact binary that will load them. `scripts/velociraptor.sh`
+The linter is a Go program under `linter/`. The verifier, the smoke, and the definitions
+index the linter resolves against all run through one pinned Velociraptor release, so
+artefacts are checked with the exact engine that will load them. `scripts/velociraptor.sh`
 downloads that release into `.cache/` (git-ignored) on first use; CI caches the same
-directory, keyed on the pin file.
+directory, keyed on the pin file. The Go toolchain comes from the runner (`GOTOOLCHAIN=auto`
+fetches the pinned version if needed).
 
 ## Continuous integration
 
-- `.github/workflows/ci.yml` runs `make yamllint` in one job and `make vql-lint`,
+- `.github/workflows/ci.yml` runs `make yamllint` in one job and `make lint-bin`, `make lint`,
   `make lint-test`, `make verify` and `make smoke` in another, on every pull request and
   push to `main`. `all_green` is the one status check branch protection needs.
 - `.pre-commit-config.yaml` runs yamllint, gitleaks, the linter and the verifier on staged
@@ -44,6 +46,7 @@ proven in a collection, where linter warnings become errors and nothing may depe
 | Python tooling | `.github/workflows/requirements/python.txt` | Dependabot (pip) |
 | GitHub Actions | the workflow files (SHA-pinned, `# vX.Y.Z` comment) | Dependabot (github-actions) |
 | pre-commit hooks | `.pre-commit-config.yaml` | `prek` / `pre-commit` autoupdate |
+| Go modules | `linter/go.mod` | Dependabot (gomod) |
 
 `update-pins.yml` runs `make upgrade` weekly — raising the submodules to the tip of their
 branch and the Velociraptor binary to its newest release — and pushes a `chore-update-pins`
@@ -51,7 +54,8 @@ branch for a manual pull request.
 
 ## The dependency universe
 
-The linter resolves `Artifact.X()` calls and checks name collisions against the upstream
+The linter resolves `Artifact.X()` calls and checks name collisions against a definitions
+index — `scripts/universe.vql` dumps it from the pinned release — built from the upstream
 definitions kept as shallow submodules under `upstream/`:
 
 - `velociraptor` — the pinned source: the VQL reference the improper-method rules check

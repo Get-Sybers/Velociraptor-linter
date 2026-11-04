@@ -1,0 +1,4 @@
+LET GateRows(S) = SELECT count() AS N FROM foreach(row=filter(list=S.precondition, condition="x=>x")) GROUP BY _value
+LET DistinctGates(S) = if(condition=typeof(a=S) =~ "\\[\\]", then=len(list=GateRows(S=S).N), else=0)
+SELECT name AS Name, parameters.name AS Params, aliases AS Aliases, DistinctGates(S=sources) AS Gates
+FROM artifact_definitions() WHERE NOT name =~ "(?i)^Linter\\."
