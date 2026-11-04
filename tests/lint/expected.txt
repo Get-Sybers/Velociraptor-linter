@@ -1,4 +1,5 @@
 Dev/Client/Example/Bundle/Fixture.yaml:1: VS052 warning: bundle source 2 projects different columns from source 1 (missing Name; extra Exe; ); every source of a bundle projects the same columns in the same order
+Dev/Client/Example/Windows/Fixture/BadVQL.yaml:1: VS085 error: VQL in `sources[0].query` does not parse; run `make verify` for the parser error
 Dev/Client/Example/Windows/Fixture/Big.yaml:1: VS009 warning: file is 95608 bytes; the verifier reads at most 100000
 Dev/Client/Example/Windows/Fixture/Collide.yaml:1: VS003 error: name `Windows.System.TaskScheduler` does not match the file path (expected `Example.Windows.Fixture.Collide`)
 Dev/Client/Example/Windows/Fixture/Collide.yaml:1: VS004 error: second segment `System` is not a platform: Bundle, DetectRaptor, General, Generic, Linux, MacOS, Server, Windows

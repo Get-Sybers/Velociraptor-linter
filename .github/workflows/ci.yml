@@ -1,10 +1,11 @@
 name: CI
 
-# The pull-request gate: yamllint, then everything the pinned Velociraptor
-# release checks (the VQL linter, the verifier, the smoke). Every job checks
-# out the upstream submodules recursively (the dependency universe) and runs
-# the same `make` targets a contributor runs locally. `all_green` is the one
-# status check branch protection requires.
+# The pull-request gate: yamllint, then the Go linter plus everything the pinned
+# Velociraptor release checks (the verifier and the smoke). Every job checks out
+# the upstream submodules recursively (the dependency universe) and runs the same
+# `make` targets a contributor runs locally. `all_green` is the one status check
+# branch protection requires. The Go toolchain is provided by the runner (with
+# GOTOOLCHAIN=auto fetching the pinned version if needed).
 
 on:
   pull_request:
@@ -43,7 +44,7 @@ jobs:
         run: make yamllint
 
   verify:
-    name: velociraptor lint, verify, smoke
+    name: lint, verify, smoke
     runs-on: ubuntu-24.04
     steps:
       - name: Checkout with submodules
@@ -58,18 +59,11 @@ jobs:
           path: .cache/velociraptor
           key: velociraptor-${{ runner.os }}-${{ hashFiles('.github/workflows/requirements/velociraptor.txt') }}
 
-      - name: Set up Python
-        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
-        with:
-          python-version: "3.13"
-          cache: pip
-          cache-dependency-path: .github/workflows/requirements/python.txt
+      - name: Build the Go linter
+        run: make lint-bin
 
-      - name: Install Python tooling
-        run: make deps
-
-      - name: Artefact standard (lint/Artefacts.yaml)
-        run: make vql-lint
+      - name: Artefact standard (Go linter)
+        run: make lint
 
       - name: Linter regression test
         run: make lint-test

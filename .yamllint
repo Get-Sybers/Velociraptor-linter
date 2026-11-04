@@ -1,6 +1,6 @@
 # YAML style gate for artefact definitions and workflow files.
 # Semantics (field order, naming, comments inside VQL) are the job of
-# lint/Artefacts.yaml (via scripts/lint.sh); this file only holds the YAML surface rules.
+# the Go linter (linter/); this file only holds the YAML surface rules.
 extends: default
 
 ignore: |

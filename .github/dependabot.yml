@@ -20,3 +20,13 @@ updates:
       python:
         patterns:
           - "*"
+  - package-ecosystem: gomod
+    directory: /linter
+    schedule:
+      interval: weekly
+    cooldown:
+      default-days: 7
+    groups:
+      go:
+        patterns:
+          - "*"
