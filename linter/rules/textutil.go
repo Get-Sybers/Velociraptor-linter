@@ -7,9 +7,10 @@ import (
 	"velociraptor-linter/model"
 )
 
-// VQL text helpers that mirror lint/Artefacts.yaml's Mask/Flat/projection logic.
-// Used by the rules that inspect query text (projections, literal concatenation,
-// parameter usage) where vfilter's visitor does not expose the needed detail.
+// VQL text helpers for masking string/comment literals and flattening nested
+// brackets. Used by the rules that inspect query text (projections, literal
+// concatenation, parameter usage) where vfilter's visitor does not expose the
+// needed detail.
 var (
 	reStrLit = regexp.MustCompile(`(?s)'{3}.*?'{3}|"(?:[^"\\\n]|\\.)*"|'(?:[^'\\\n]|\\.)*'|` + "`[^`\n]*`")
 	reCmtLit = regexp.MustCompile(`(?s)//[^\n]*|--[^\n]*|/\*.*?\*/`)
@@ -115,7 +116,7 @@ func hasStar(q string) bool {
 }
 
 // allVQL joins every VQL block (raw). allVQLAndCells also appends notebook vql
-// cell templates, mirroring the source linter's AllVQL / AllVQLAndCells.
+// cell templates.
 func allVQL(a *model.Artefact) string {
 	var parts []string
 	for _, b := range a.Blocks() {
