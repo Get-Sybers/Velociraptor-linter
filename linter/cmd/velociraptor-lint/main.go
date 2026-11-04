@@ -209,6 +209,9 @@ func loadReference(path string) *rules.Reference {
 	}
 	data, err := os.ReadFile(path)
 	if err != nil {
+		if os.IsNotExist(err) {
+			fatal(fmt.Errorf("VQL reference %q not found; run `make submodules` to fetch upstream/velociraptor", path))
+		}
 		fatal(err)
 	}
 	var rows []struct {

@@ -315,8 +315,11 @@ func mapping(n *yaml.Node) (map[string]bool, map[string]*yaml.Node) {
 }
 
 func scalar(n *yaml.Node) (string, bool) {
+	// The bool tracks whether the scalar is actually a string. A non-string
+	// YAML scalar (int, bool, null) must not satisfy the string-only field
+	// checks: the engine's own parse_yaml types it rather than stringifying it.
 	if n != nil && n.Kind == yaml.ScalarNode {
-		return n.Value, true
+		return n.Value, n.ShortTag() == "!!str"
 	}
 	return "", false
 }
